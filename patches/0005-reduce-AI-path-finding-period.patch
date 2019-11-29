@@ -1,0 +1,25 @@
+From dededec83e03e5e7d29c41eb21ca916ddf8a6fcc Mon Sep 17 00:00:00 2001
+From: root <root@testpaper.20191124-2>
+Date: Fri, 29 Nov 2019 15:48:59 +0000
+Subject: [PATCH 5/5] reduce AI path finding period
+
+---
+ src/main/java/net/minecraft/server/EntityInsentient.java | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/main/java/net/minecraft/server/EntityInsentient.java b/src/main/java/net/minecraft/server/EntityInsentient.java
+index 4e412e30c..f4d5f8f2f 100644
+--- a/src/main/java/net/minecraft/server/EntityInsentient.java
++++ b/src/main/java/net/minecraft/server/EntityInsentient.java
+@@ -657,7 +657,7 @@ public abstract class EntityInsentient extends EntityLiving {
+         this.bz.a();
+         this.world.getMethodProfiler().exit();
+         this.world.getMethodProfiler().enter("targetSelector");
+-        boolean skipGoalUpdate = !(this instanceof EntityPigZombie || this instanceof EntitySnowman || this instanceof EntityCat || this instanceof EntityWolf) && ThreadLocalRandom.current().nextInt(100) < 10 ;
++        boolean skipGoalUpdate = !(this instanceof EntityPigZombie || this instanceof EntitySnowman || this instanceof EntityCat || this instanceof EntityWolf) && ThreadLocalRandom.current().nextInt(100) < 90 ;
+         this.targetSelector.doTick(skipGoalUpdate);
+         this.world.getMethodProfiler().exit();
+         this.world.getMethodProfiler().enter("goalSelector");
+-- 
+2.11.0
+

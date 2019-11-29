@@ -1,0 +1,35 @@
+From 94d79126d28d0909b1b1db07c92aa89daed35f09 Mon Sep 17 00:00:00 2001
+From: root <root@testpaper.20191124-2>
+Date: Fri, 29 Nov 2019 13:05:19 +0000
+Subject: [PATCH 4/5] reduce villiger activity by half
+
+---
+ src/main/java/net/minecraft/server/EntityVillager.java | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/src/main/java/net/minecraft/server/EntityVillager.java b/src/main/java/net/minecraft/server/EntityVillager.java
+index 7f747fac9..019bae959 100644
+--- a/src/main/java/net/minecraft/server/EntityVillager.java
++++ b/src/main/java/net/minecraft/server/EntityVillager.java
+@@ -13,6 +13,7 @@ import java.util.Map;
+ import java.util.Optional;
+ import java.util.Set;
+ import java.util.Map.Entry;
++import java.util.concurrent.ThreadLocalRandom;
+ import java.util.function.BiPredicate;
+ import java.util.stream.Collectors;
+ import javax.annotation.Nullable;
+@@ -145,7 +146,9 @@ public class EntityVillager extends EntityVillagerAbstract implements Reputation
+     @Override
+     protected void mobTick() {
+         this.world.getMethodProfiler().enter("brain");
+-        this.getBehaviorController().a((WorldServer) this.world, this); // CraftBukkit - decompile error
++        if (ThreadLocalRandom.current().nextInt(100)<50) {
++            this.getBehaviorController().a((WorldServer) this.world, this); // CraftBukkit - decompile error
++        }
+         this.world.getMethodProfiler().exit();
+         if (!this.dY() && this.bE > 0) {
+             --this.bE;
+-- 
+2.11.0
+
