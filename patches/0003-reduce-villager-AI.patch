@@ -1,0 +1,58 @@
+From bb4b4bfded14e6983c7fdb148e5b389f5001f97d Mon Sep 17 00:00:00 2001
+From: ReinWD <ReinWDD@gmail.com>
+Date: Tue, 31 Dec 2019 00:06:16 +0800
+Subject: [PATCH 3/4] reduce villager AI
+
+---
+ src/main/java/net/minecraft/server/BehaviorFindPosition.java | 4 ++--
+ src/main/java/net/minecraft/server/EntityVillager.java       | 5 ++++-
+ 2 files changed, 6 insertions(+), 3 deletions(-)
+
+diff --git a/src/main/java/net/minecraft/server/BehaviorFindPosition.java b/src/main/java/net/minecraft/server/BehaviorFindPosition.java
+index 37006ec1b..0cd17b3d5 100644
+--- a/src/main/java/net/minecraft/server/BehaviorFindPosition.java
++++ b/src/main/java/net/minecraft/server/BehaviorFindPosition.java
+@@ -29,7 +29,7 @@ public class BehaviorFindPosition extends Behavior<EntityCreature> {
+ 
+     protected void a(WorldServer worldserver, EntityCreature entitycreature, long i) {
+         this.f = 0;
+-        this.d = worldserver.getTime() + (long) worldserver.getRandom().nextInt(20);
++        this.d = worldserver.getTime() + (long) worldserver.getRandom().nextInt(100);
+         VillagePlace villageplace = worldserver.B();
+         Predicate<BlockPosition> predicate = (blockposition) -> {
+             long j = blockposition.asLong();
+@@ -39,7 +39,7 @@ public class BehaviorFindPosition extends Behavior<EntityCreature> {
+             } else if (++this.f >= 5) {
+                 return false;
+             } else {
+-                this.e.put(j, this.d + 40L);
++                this.e.put(j, this.d + 120L);
+                 return true;
+             }
+         };
+diff --git a/src/main/java/net/minecraft/server/EntityVillager.java b/src/main/java/net/minecraft/server/EntityVillager.java
+index 572723005..fc346b848 100644
+--- a/src/main/java/net/minecraft/server/EntityVillager.java
++++ b/src/main/java/net/minecraft/server/EntityVillager.java
+@@ -13,6 +13,7 @@ import java.util.Map;
+ import java.util.Optional;
+ import java.util.Set;
+ import java.util.Map.Entry;
++import java.util.concurrent.ThreadLocalRandom;
+ import java.util.function.BiPredicate;
+ import java.util.stream.Collectors;
+ import javax.annotation.Nullable;
+@@ -145,7 +146,9 @@ public class EntityVillager extends EntityVillagerAbstract implements Reputation
+     @Override
+     protected void mobTick() {
+         this.world.getMethodProfiler().enter("brain");
+-        this.getBehaviorController().a((WorldServer) this.world, this); // CraftBukkit - decompile error
++        if (ThreadLocalRandom.current().nextInt(100)<50) {
++            this.getBehaviorController().a((WorldServer) this.world, this); // CraftBukkit - decompile error
++        }
+         this.world.getMethodProfiler().exit();
+         if (!this.et() && this.bB > 0) {
+             --this.bB;
+-- 
+2.17.1
+

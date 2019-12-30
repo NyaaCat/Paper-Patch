@@ -1,0 +1,468 @@
+From dacf074c358ff6aad5d84418451f5e253a3850f5 Mon Sep 17 00:00:00 2001
+From: ReinWD <ReinWDD@gmail.com>
+Date: Tue, 31 Dec 2019 00:02:45 +0800
+Subject: [PATCH 2/4] add three 1.15 src files
+
+---
+ .../minecraft/server/BehaviorController.java  | 244 ++++++++++++++++++
+ .../server/BehaviorFindPosition.java          |  66 +++++
+ .../server/PathfinderGoalSelector.java        | 123 +++++++++
+ 3 files changed, 433 insertions(+)
+ create mode 100644 src/main/java/net/minecraft/server/BehaviorController.java
+ create mode 100644 src/main/java/net/minecraft/server/BehaviorFindPosition.java
+ create mode 100644 src/main/java/net/minecraft/server/PathfinderGoalSelector.java
+
+diff --git a/src/main/java/net/minecraft/server/BehaviorController.java b/src/main/java/net/minecraft/server/BehaviorController.java
+new file mode 100644
+index 000000000..a1883eba6
+--- /dev/null
++++ b/src/main/java/net/minecraft/server/BehaviorController.java
+@@ -0,0 +1,244 @@
++package net.minecraft.server;
++
++import com.google.common.collect.ImmutableList;
++import com.google.common.collect.ImmutableMap;
++import com.google.common.collect.ImmutableSet;
++import com.google.common.collect.Maps;
++import com.google.common.collect.Sets;
++import com.mojang.datafixers.Dynamic;
++import com.mojang.datafixers.types.DynamicOps;
++import com.mojang.datafixers.util.Pair;
++import java.util.Collection;
++import java.util.Iterator;
++import java.util.Map;
++import java.util.Optional;
++import java.util.Set;
++import java.util.Map.Entry;
++import java.util.function.Function;
++import java.util.stream.Collectors;
++import java.util.stream.Stream;
++import javax.annotation.Nullable;
++
++public class BehaviorController<E extends EntityLiving> implements MinecraftSerializable {
++
++    private final Map<MemoryModuleType<?>, Optional<?>> memories = Maps.newHashMap();
++    private final Map<SensorType<? extends Sensor<? super E>>, Sensor<? super E>> sensors = Maps.newLinkedHashMap();
++    private final Map<Integer, Map<Activity, Set<Behavior<? super E>>>> c = Maps.newTreeMap();
++    private Schedule schedule;
++    private final Map<Activity, Set<Pair<MemoryModuleType<?>, MemoryStatus>>> e;
++    private Set<Activity> f;
++    private final Set<Activity> g;
++    private Activity h;
++    private long i;
++
++    public <T> BehaviorController(Collection<MemoryModuleType<?>> collection, Collection<SensorType<? extends Sensor<? super E>>> collection1, Dynamic<T> dynamic) {
++        this.schedule = Schedule.EMPTY;
++        this.e = Maps.newHashMap();
++        this.f = Sets.newHashSet();
++        this.g = Sets.newHashSet();
++        this.h = Activity.IDLE;
++        this.i = -9999L;
++        collection.forEach((memorymoduletype) -> {
++            Optional optional = (Optional) this.memories.put(memorymoduletype, Optional.empty());
++        });
++        collection1.forEach((sensortype) -> {
++            Sensor sensor = (Sensor) this.sensors.put(sensortype, sensortype.a());
++        });
++        this.sensors.values().forEach((sensor) -> {
++            Iterator iterator = sensor.a().iterator();
++
++            while (iterator.hasNext()) {
++                MemoryModuleType<?> memorymoduletype = (MemoryModuleType) iterator.next();
++
++                this.memories.put(memorymoduletype, Optional.empty());
++            }
++
++        });
++        Iterator iterator = dynamic.get("memories").asMap(Function.identity(), Function.identity()).entrySet().iterator();
++
++        while (iterator.hasNext()) {
++            Entry<Dynamic<T>, Dynamic<T>> entry = (Entry) iterator.next();
++
++            this.a((MemoryModuleType) IRegistry.MEMORY_MODULE_TYPE.get(new MinecraftKey(((Dynamic) entry.getKey()).asString(""))), (Dynamic) entry.getValue());
++        }
++
++    }
++
++    public boolean hasMemory(MemoryModuleType<?> memorymoduletype) {
++        return this.a(memorymoduletype, MemoryStatus.VALUE_PRESENT);
++    }
++
++    private <T, U> void a(MemoryModuleType<U> memorymoduletype, Dynamic<T> dynamic) {
++        this.setMemory(memorymoduletype, ((Function) memorymoduletype.getSerializer().orElseThrow(RuntimeException::new)).apply(dynamic));
++    }
++
++    public <U> void removeMemory(MemoryModuleType<U> memorymoduletype) {
++        this.setMemory(memorymoduletype, Optional.empty());
++    }
++
++    public <U> void setMemory(MemoryModuleType<U> memorymoduletype, @Nullable U u0) {
++        this.setMemory(memorymoduletype, Optional.ofNullable(u0));
++    }
++
++    public <U> void setMemory(MemoryModuleType<U> memorymoduletype, Optional<U> optional) {
++        if (this.memories.containsKey(memorymoduletype)) {
++            if (optional.isPresent() && this.a(optional.get())) {
++                this.removeMemory(memorymoduletype);
++            } else {
++                this.memories.put(memorymoduletype, optional);
++            }
++        }
++
++    }
++
++    public <U> Optional<U> getMemory(MemoryModuleType<U> memorymoduletype) {
++        return (Optional) this.memories.get(memorymoduletype);
++    }
++
++    public boolean a(MemoryModuleType<?> memorymoduletype, MemoryStatus memorystatus) {
++        Optional<?> optional = (Optional) this.memories.get(memorymoduletype);
++
++        return optional == null ? false : memorystatus == MemoryStatus.REGISTERED || memorystatus == MemoryStatus.VALUE_PRESENT && optional.isPresent() || memorystatus == MemoryStatus.VALUE_ABSENT && !optional.isPresent();
++    }
++
++    public Schedule getSchedule() {
++        return this.schedule;
++    }
++
++    public void setSchedule(Schedule schedule) {
++        this.schedule = schedule;
++    }
++
++    public void a(Set<Activity> set) {
++        this.f = set;
++    }
++
++    @Deprecated
++    public Stream<Behavior<? super E>> d() {
++        return this.c.values().stream().flatMap((map) -> {
++            return map.values().stream();
++        }).flatMap(Collection::stream).filter((behavior) -> {
++            return behavior.a() == Behavior.Status.RUNNING;
++        });
++    }
++
++    public void a(Activity activity) {
++        this.g.clear();
++        this.g.addAll(this.f);
++        boolean flag = this.e.keySet().contains(activity) && this.d(activity);
++
++        this.g.add(flag ? activity : this.h);
++    }
++
++    public void a(long i, long j) {
++        if (j - this.i > 20L) {
++            this.i = j;
++            Activity activity = this.getSchedule().a((int) (i % 24000L));
++
++            if (!this.g.contains(activity)) {
++                this.a(activity);
++            }
++        }
++
++    }
++
++    public void b(Activity activity) {
++        this.h = activity;
++    }
++
++    public void a(Activity activity, ImmutableList<Pair<Integer, ? extends Behavior<? super E>>> immutablelist) {
++        this.a(activity, immutablelist, (Set) ImmutableSet.of());
++    }
++
++    public void a(Activity activity, ImmutableList<Pair<Integer, ? extends Behavior<? super E>>> immutablelist, Set<Pair<MemoryModuleType<?>, MemoryStatus>> set) {
++        this.e.put(activity, set);
++        immutablelist.forEach((pair) -> {
++            ((Set) ((Map) this.c.computeIfAbsent(pair.getFirst(), (integer) -> {
++                return Maps.newHashMap();
++            })).computeIfAbsent(activity, (activity1) -> {
++                return Sets.newLinkedHashSet();
++            })).add(pair.getSecond());
++        });
++    }
++
++    public boolean c(Activity activity) {
++        return this.g.contains(activity);
++    }
++
++    public BehaviorController<E> f() {
++        BehaviorController<E> behaviorcontroller = new BehaviorController<>(this.memories.keySet(), this.sensors.keySet(), new Dynamic(DynamicOpsNBT.a, new NBTTagCompound()));
++
++        this.memories.forEach((memorymoduletype, optional) -> {
++            optional.ifPresent((object) -> {
++                Optional optional1 = (Optional) behaviorcontroller.memories.put(memorymoduletype, Optional.of(object));
++            });
++        });
++        return behaviorcontroller;
++    }
++
++    public void a(WorldServer worldserver, E e0) {
++        this.c(worldserver, e0);
++        this.d(worldserver, e0);
++        this.e(worldserver, e0);
++    }
++
++    public void b(WorldServer worldserver, E e0) {
++        long i = e0.world.getTime();
++
++        this.d().forEach((behavior) -> {
++            behavior.e(worldserver, e0, i);
++        });
++    }
++
++    @Override
++    public <T> T a(DynamicOps<T> dynamicops) {
++        T t0 = dynamicops.createMap((Map) this.memories.entrySet().stream().filter((entry) -> {
++            return ((MemoryModuleType) entry.getKey()).getSerializer().isPresent() && ((Optional) entry.getValue()).isPresent();
++        }).map((entry) -> {
++            return Pair.of(dynamicops.createString(IRegistry.MEMORY_MODULE_TYPE.getKey(entry.getKey()).toString()), ((MinecraftSerializable) ((Optional) entry.getValue()).get()).a(dynamicops));
++        }).collect(Collectors.toMap(Pair::getFirst, Pair::getSecond)));
++
++        return dynamicops.createMap(ImmutableMap.of(dynamicops.createString("memories"), t0));
++    }
++
++    private void c(WorldServer worldserver, E e0) {
++        this.sensors.values().forEach((sensor) -> {
++            sensor.b(worldserver, e0);
++        });
++    }
++
++    private void d(WorldServer worldserver, E e0) {
++        long i = worldserver.getTime();
++
++        this.c.values().stream().flatMap((map) -> {
++            return map.entrySet().stream();
++        }).filter((entry) -> {
++            return this.g.contains(entry.getKey());
++        }).map(Entry::getValue).flatMap(Collection::stream).filter((behavior) -> {
++            return behavior.a() == Behavior.Status.STOPPED;
++        }).forEach((behavior) -> {
++            behavior.b(worldserver, e0, i);
++        });
++    }
++
++    private void e(WorldServer worldserver, E e0) {
++        long i = worldserver.getTime();
++
++        this.d().forEach((behavior) -> {
++            behavior.c(worldserver, e0, i);
++        });
++    }
++
++    private boolean d(Activity activity) {
++        return ((Set) this.e.get(activity)).stream().allMatch((pair) -> {
++            MemoryModuleType<?> memorymoduletype = (MemoryModuleType) pair.getFirst();
++            MemoryStatus memorystatus = (MemoryStatus) pair.getSecond();
++
++            return this.a(memorymoduletype, memorystatus);
++        });
++    }
++
++    private boolean a(Object object) {
++        return object instanceof Collection && ((Collection) object).isEmpty();
++    }
++}
+diff --git a/src/main/java/net/minecraft/server/BehaviorFindPosition.java b/src/main/java/net/minecraft/server/BehaviorFindPosition.java
+new file mode 100644
+index 000000000..37006ec1b
+--- /dev/null
++++ b/src/main/java/net/minecraft/server/BehaviorFindPosition.java
+@@ -0,0 +1,66 @@
++package net.minecraft.server;
++
++import com.google.common.collect.ImmutableMap;
++import it.unimi.dsi.fastutil.longs.Long2LongMap;
++import it.unimi.dsi.fastutil.longs.Long2LongOpenHashMap;
++import it.unimi.dsi.fastutil.longs.Long2LongMap.Entry;
++import java.util.function.Predicate;
++import java.util.stream.Stream;
++
++public class BehaviorFindPosition extends Behavior<EntityCreature> {
++
++    private final VillagePlaceType a;
++    private final MemoryModuleType<GlobalPos> b;
++    private final boolean c;
++    private long d;
++    private final Long2LongMap e = new Long2LongOpenHashMap();
++    private int f;
++
++    public BehaviorFindPosition(VillagePlaceType villageplacetype, MemoryModuleType<GlobalPos> memorymoduletype, boolean flag) {
++        super(ImmutableMap.of(memorymoduletype, MemoryStatus.VALUE_ABSENT));
++        this.a = villageplacetype;
++        this.b = memorymoduletype;
++        this.c = flag;
++    }
++
++    protected boolean a(WorldServer worldserver, EntityCreature entitycreature) {
++        return this.c && entitycreature.isBaby() ? false : worldserver.getTime() - this.d >= 20L;
++    }
++
++    protected void a(WorldServer worldserver, EntityCreature entitycreature, long i) {
++        this.f = 0;
++        this.d = worldserver.getTime() + (long) worldserver.getRandom().nextInt(20);
++        VillagePlace villageplace = worldserver.B();
++        Predicate<BlockPosition> predicate = (blockposition) -> {
++            long j = blockposition.asLong();
++
++            if (this.e.containsKey(j)) {
++                return false;
++            } else if (++this.f >= 5) {
++                return false;
++            } else {
++                this.e.put(j, this.d + 40L);
++                return true;
++            }
++        };
++        Stream<BlockPosition> stream = villageplace.a(this.a.c(), predicate, new BlockPosition(entitycreature), 48, VillagePlace.Occupancy.HAS_SPACE);
++        PathEntity pathentity = entitycreature.getNavigation().a(stream, this.a.d());
++
++        if (pathentity != null && pathentity.h()) {
++            BlockPosition blockposition = pathentity.k();
++
++            villageplace.c(blockposition).ifPresent((villageplacetype) -> {
++                villageplace.a(this.a.c(), (blockposition1) -> {
++                    return blockposition1.equals(blockposition);
++                }, blockposition, 1);
++                entitycreature.getBehaviorController().setMemory(this.b, (Object) GlobalPos.create(worldserver.getWorldProvider().getDimensionManager(), blockposition));
++                PacketDebug.c(worldserver, blockposition);
++            });
++        } else if (this.f < 5) {
++            this.e.long2LongEntrySet().removeIf((entry) -> {
++                return entry.getLongValue() < this.d;
++            });
++        }
++
++    }
++}
+diff --git a/src/main/java/net/minecraft/server/PathfinderGoalSelector.java b/src/main/java/net/minecraft/server/PathfinderGoalSelector.java
+new file mode 100644
+index 000000000..44bb18c59
+--- /dev/null
++++ b/src/main/java/net/minecraft/server/PathfinderGoalSelector.java
+@@ -0,0 +1,123 @@
++package net.minecraft.server;
++
++import com.google.common.collect.Sets;
++import java.util.EnumMap;
++import java.util.EnumSet;
++import java.util.Map;
++import java.util.Set;
++import java.util.stream.Stream;
++import org.apache.logging.log4j.LogManager;
++import org.apache.logging.log4j.Logger;
++
++public class PathfinderGoalSelector {
++
++    private static final Logger LOGGER = LogManager.getLogger();
++    private static final PathfinderGoalWrapped b = new PathfinderGoalWrapped(Integer.MAX_VALUE, new PathfinderGoal() {
++        @Override
++        public boolean a() {
++            return false;
++        }
++    }) {
++        @Override
++        public boolean g() {
++            return false;
++        }
++    };
++    private final Map<PathfinderGoal.Type, PathfinderGoalWrapped> c = new EnumMap(PathfinderGoal.Type.class);
++    private final Set<PathfinderGoalWrapped> d = Sets.newLinkedHashSet();
++    private final GameProfilerFiller e;
++    private final EnumSet<PathfinderGoal.Type> f = EnumSet.noneOf(PathfinderGoal.Type.class);
++    private int g = 3;
++
++    public PathfinderGoalSelector(GameProfilerFiller gameprofilerfiller) {
++        this.e = gameprofilerfiller;
++    }
++
++    public void a(int i, PathfinderGoal pathfindergoal) {
++        this.d.add(new PathfinderGoalWrapped(i, pathfindergoal));
++    }
++
++    public void a(PathfinderGoal pathfindergoal) {
++        this.d.stream().filter((pathfindergoalwrapped) -> {
++            return pathfindergoalwrapped.j() == pathfindergoal;
++        }).filter(PathfinderGoalWrapped::g).forEach(PathfinderGoalWrapped::d);
++        this.d.removeIf((pathfindergoalwrapped) -> {
++            return pathfindergoalwrapped.j() == pathfindergoal;
++        });
++    }
++
++    public void doTick() {
++        this.e.enter("goalCleanup");
++        this.c().filter((pathfindergoalwrapped) -> {
++            boolean flag;
++
++            if (pathfindergoalwrapped.g()) {
++                Stream stream = pathfindergoalwrapped.i().stream();
++                EnumSet enumset = this.f;
++
++                this.f.getClass();
++                if (!stream.anyMatch(enumset::contains) && pathfindergoalwrapped.b()) {
++                    flag = false;
++                    return flag;
++                }
++            }
++
++            flag = true;
++            return flag;
++        }).forEach(PathfinderGoal::d);
++        this.c.forEach((pathfindergoal_type, pathfindergoalwrapped) -> {
++            if (!pathfindergoalwrapped.g()) {
++                this.c.remove(pathfindergoal_type);
++            }
++
++        });
++        this.e.exit();
++        this.e.enter("goalUpdate");
++        this.d.stream().filter((pathfindergoalwrapped) -> {
++            return !pathfindergoalwrapped.g();
++        }).filter((pathfindergoalwrapped) -> {
++            Stream stream = pathfindergoalwrapped.i().stream();
++            EnumSet enumset = this.f;
++
++            this.f.getClass();
++            return stream.noneMatch(enumset::contains);
++        }).filter((pathfindergoalwrapped) -> {
++            return pathfindergoalwrapped.i().stream().allMatch((pathfindergoal_type) -> {
++                return ((PathfinderGoalWrapped) this.c.getOrDefault(pathfindergoal_type, PathfinderGoalSelector.b)).a(pathfindergoalwrapped);
++            });
++        }).filter(PathfinderGoalWrapped::a).forEach((pathfindergoalwrapped) -> {
++            pathfindergoalwrapped.i().forEach((pathfindergoal_type) -> {
++                PathfinderGoalWrapped pathfindergoalwrapped1 = (PathfinderGoalWrapped) this.c.getOrDefault(pathfindergoal_type, PathfinderGoalSelector.b);
++
++                pathfindergoalwrapped1.d();
++                this.c.put(pathfindergoal_type, pathfindergoalwrapped);
++            });
++            pathfindergoalwrapped.c();
++        });
++        this.e.exit();
++        this.e.enter("goalTick");
++        this.c().forEach(PathfinderGoalWrapped::e);
++        this.e.exit();
++    }
++
++    public Stream<PathfinderGoalWrapped> c() {
++        return this.d.stream().filter(PathfinderGoalWrapped::g);
++    }
++
++    public void a(PathfinderGoal.Type pathfindergoal_type) {
++        this.f.add(pathfindergoal_type);
++    }
++
++    public void b(PathfinderGoal.Type pathfindergoal_type) {
++        this.f.remove(pathfindergoal_type);
++    }
++
++    public void a(PathfinderGoal.Type pathfindergoal_type, boolean flag) {
++        if (flag) {
++            this.b(pathfindergoal_type);
++        } else {
++            this.a(pathfindergoal_type);
++        }
++
++    }
++}
+-- 
+2.17.1
+
