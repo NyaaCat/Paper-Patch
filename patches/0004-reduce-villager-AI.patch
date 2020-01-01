@@ -1,15 +1,15 @@
-From bb4b4bfded14e6983c7fdb148e5b389f5001f97d Mon Sep 17 00:00:00 2001
+From 2f4c86c52b8139af9d85b71cd46e043176a4da5c Mon Sep 17 00:00:00 2001
 From: ReinWD <ReinWDD@gmail.com>
-Date: Tue, 31 Dec 2019 00:06:16 +0800
-Subject: [PATCH 3/4] reduce villager AI
+Date: Wed, 1 Jan 2020 17:11:36 +0800
+Subject: [PATCH 4/5] reduce villager AI
 
 ---
- src/main/java/net/minecraft/server/BehaviorFindPosition.java | 4 ++--
- src/main/java/net/minecraft/server/EntityVillager.java       | 5 ++++-
- 2 files changed, 6 insertions(+), 3 deletions(-)
+ .../java/net/minecraft/server/BehaviorFindPosition.java   | 4 ++--
+ src/main/java/net/minecraft/server/EntityVillager.java    | 8 ++++++++
+ 2 files changed, 10 insertions(+), 2 deletions(-)
 
 diff --git a/src/main/java/net/minecraft/server/BehaviorFindPosition.java b/src/main/java/net/minecraft/server/BehaviorFindPosition.java
-index 37006ec1b..0cd17b3d5 100644
+index 35eb3a5a6..7cfd1b4b8 100644
 --- a/src/main/java/net/minecraft/server/BehaviorFindPosition.java
 +++ b/src/main/java/net/minecraft/server/BehaviorFindPosition.java
 @@ -29,7 +29,7 @@ public class BehaviorFindPosition extends Behavior<EntityCreature> {
@@ -31,7 +31,7 @@ index 37006ec1b..0cd17b3d5 100644
              }
          };
 diff --git a/src/main/java/net/minecraft/server/EntityVillager.java b/src/main/java/net/minecraft/server/EntityVillager.java
-index 572723005..fc346b848 100644
+index 572723005..428ae7f0c 100644
 --- a/src/main/java/net/minecraft/server/EntityVillager.java
 +++ b/src/main/java/net/minecraft/server/EntityVillager.java
 @@ -13,6 +13,7 @@ import java.util.Map;
@@ -42,14 +42,22 @@ index 572723005..fc346b848 100644
  import java.util.function.BiPredicate;
  import java.util.stream.Collectors;
  import javax.annotation.Nullable;
-@@ -145,7 +146,9 @@ public class EntityVillager extends EntityVillagerAbstract implements Reputation
+@@ -141,11 +142,18 @@ public class EntityVillager extends EntityVillagerAbstract implements Reputation
+         super.inactiveTick();
+     }
+     // Spigot End
++    BehaviorSwim swim = new BehaviorSwim(0.4F, 0.8F);
+ 
      @Override
      protected void mobTick() {
          this.world.getMethodProfiler().enter("brain");
--        this.getBehaviorController().a((WorldServer) this.world, this); // CraftBukkit - decompile error
 +        if (ThreadLocalRandom.current().nextInt(100)<50) {
 +            this.getBehaviorController().a((WorldServer) this.world, this); // CraftBukkit - decompile error
 +        }
+         this.getBehaviorController().a((WorldServer) this.world, this); // CraftBukkit - decompile error
++        long var2 = this.world.getTime();
++        swim.b((WorldServer) this.world, this, var2);
++        swim.c((WorldServer) this.world, this, var2);
          this.world.getMethodProfiler().exit();
          if (!this.et() && this.bB > 0) {
              --this.bB;

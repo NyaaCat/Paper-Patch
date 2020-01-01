@@ -1,0 +1,66 @@
+From 76ecd2eb79f47247f38511b008630b15ac11f96a Mon Sep 17 00:00:00 2001
+From: ReinWD <ReinWDD@gmail.com>
+Date: Wed, 1 Jan 2020 17:06:46 +0800
+Subject: [PATCH 3/5] fix compile problems
+
+---
+ .../java/net/minecraft/server/BehaviorController.java     | 8 ++++----
+ .../java/net/minecraft/server/BehaviorFindPosition.java   | 2 +-
+ 2 files changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/src/main/java/net/minecraft/server/BehaviorController.java b/src/main/java/net/minecraft/server/BehaviorController.java
+index a1883eba6..65fb2157c 100644
+--- a/src/main/java/net/minecraft/server/BehaviorController.java
++++ b/src/main/java/net/minecraft/server/BehaviorController.java
+@@ -39,7 +39,7 @@ public class BehaviorController<E extends EntityLiving> implements MinecraftSeri
+         this.h = Activity.IDLE;
+         this.i = -9999L;
+         collection.forEach((memorymoduletype) -> {
+-            Optional optional = (Optional) this.memories.put(memorymoduletype, Optional.empty());
++            Optional optional = this.memories.put(memorymoduletype, Optional.empty());
+         });
+         collection1.forEach((sensortype) -> {
+             Sensor sensor = (Sensor) this.sensors.put(sensortype, sensortype.a());
+@@ -69,7 +69,7 @@ public class BehaviorController<E extends EntityLiving> implements MinecraftSeri
+     }
+ 
+     private <T, U> void a(MemoryModuleType<U> memorymoduletype, Dynamic<T> dynamic) {
+-        this.setMemory(memorymoduletype, ((Function) memorymoduletype.getSerializer().orElseThrow(RuntimeException::new)).apply(dynamic));
++        this.setMemory(memorymoduletype, (memorymoduletype.getSerializer().orElseThrow(RuntimeException::new)).apply(dynamic));
+     }
+ 
+     public <U> void removeMemory(MemoryModuleType<U> memorymoduletype) {
+@@ -192,7 +192,7 @@ public class BehaviorController<E extends EntityLiving> implements MinecraftSeri
+ 
+     @Override
+     public <T> T a(DynamicOps<T> dynamicops) {
+-        T t0 = dynamicops.createMap((Map) this.memories.entrySet().stream().filter((entry) -> {
++        T t0 = dynamicops.createMap(this.memories.entrySet().stream().filter((entry) -> {
+             return ((MemoryModuleType) entry.getKey()).getSerializer().isPresent() && ((Optional) entry.getValue()).isPresent();
+         }).map((entry) -> {
+             return Pair.of(dynamicops.createString(IRegistry.MEMORY_MODULE_TYPE.getKey(entry.getKey()).toString()), ((MinecraftSerializable) ((Optional) entry.getValue()).get()).a(dynamicops));
+@@ -230,7 +230,7 @@ public class BehaviorController<E extends EntityLiving> implements MinecraftSeri
+     }
+ 
+     private boolean d(Activity activity) {
+-        return ((Set) this.e.get(activity)).stream().allMatch((pair) -> {
++        return (this.e.get(activity)).stream().allMatch((pair) -> {
+             MemoryModuleType<?> memorymoduletype = (MemoryModuleType) pair.getFirst();
+             MemoryStatus memorystatus = (MemoryStatus) pair.getSecond();
+ 
+diff --git a/src/main/java/net/minecraft/server/BehaviorFindPosition.java b/src/main/java/net/minecraft/server/BehaviorFindPosition.java
+index 37006ec1b..35eb3a5a6 100644
+--- a/src/main/java/net/minecraft/server/BehaviorFindPosition.java
++++ b/src/main/java/net/minecraft/server/BehaviorFindPosition.java
+@@ -53,7 +53,7 @@ public class BehaviorFindPosition extends Behavior<EntityCreature> {
+                 villageplace.a(this.a.c(), (blockposition1) -> {
+                     return blockposition1.equals(blockposition);
+                 }, blockposition, 1);
+-                entitycreature.getBehaviorController().setMemory(this.b, (Object) GlobalPos.create(worldserver.getWorldProvider().getDimensionManager(), blockposition));
++                entitycreature.getBehaviorController().setMemory(this.b, GlobalPos.create(worldserver.getWorldProvider().getDimensionManager(), blockposition));
+                 PacketDebug.c(worldserver, blockposition);
+             });
+         } else if (this.f < 5) {
+-- 
+2.17.1
+

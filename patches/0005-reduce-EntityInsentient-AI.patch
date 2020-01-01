@@ -1,7 +1,7 @@
-From 9f958a4cafd9c6849f2f4c596ea0f21f3751a7ec Mon Sep 17 00:00:00 2001
+From e2ae8de7e2db50084237b2fdc2b43818ae6330d5 Mon Sep 17 00:00:00 2001
 From: ReinWD <ReinWDD@gmail.com>
-Date: Tue, 31 Dec 2019 00:11:07 +0800
-Subject: [PATCH 4/4] reduce EntityInsentient AI
+Date: Wed, 1 Jan 2020 17:14:11 +0800
+Subject: [PATCH 5/5] reduce EntityInsentient AI
 
 ---
  .../minecraft/server/EntityInsentient.java    |  6 ++-
@@ -9,7 +9,7 @@ Subject: [PATCH 4/4] reduce EntityInsentient AI
  2 files changed, 28 insertions(+), 24 deletions(-)
 
 diff --git a/src/main/java/net/minecraft/server/EntityInsentient.java b/src/main/java/net/minecraft/server/EntityInsentient.java
-index 5fb3c948d..2441af293 100644
+index 5fb3c948d..c0158c442 100644
 --- a/src/main/java/net/minecraft/server/EntityInsentient.java
 +++ b/src/main/java/net/minecraft/server/EntityInsentient.java
 @@ -7,6 +7,7 @@ import java.util.List;
@@ -20,12 +20,13 @@ index 5fb3c948d..2441af293 100644
  import javax.annotation.Nullable;
  
  // CraftBukkit start
-@@ -662,10 +663,11 @@ public abstract class EntityInsentient extends EntityLiving {
+@@ -661,11 +662,12 @@ public abstract class EntityInsentient extends EntityLiving {
+         this.world.getMethodProfiler().enter("sensing");
          this.bw.a();
          this.world.getMethodProfiler().exit();
++        boolean skipGoalUpdate = !(this instanceof EntityPigZombie || this instanceof EntitySnowman || this instanceof EntityCat || this instanceof EntityWolf) && ThreadLocalRandom.current().nextInt(100) < 90 ;
          this.world.getMethodProfiler().enter("targetSelector");
 -        this.targetSelector.doTick();
-+        boolean skipGoalUpdate = !(this instanceof EntityPigZombie || this instanceof EntitySnowman || this instanceof EntityCat || this instanceof EntityWolf) && ThreadLocalRandom.current().nextInt(100) < 90 ;
 +        this.targetSelector.doTick(skipGoalUpdate);
          this.world.getMethodProfiler().exit();
          this.world.getMethodProfiler().enter("goalSelector");
@@ -35,7 +36,7 @@ index 5fb3c948d..2441af293 100644
          this.world.getMethodProfiler().enter("navigation");
          this.navigation.c();
 diff --git a/src/main/java/net/minecraft/server/PathfinderGoalSelector.java b/src/main/java/net/minecraft/server/PathfinderGoalSelector.java
-index 44bb18c59..fcc778e81 100644
+index 44bb18c59..397b2a49c 100644
 --- a/src/main/java/net/minecraft/server/PathfinderGoalSelector.java
 +++ b/src/main/java/net/minecraft/server/PathfinderGoalSelector.java
 @@ -46,7 +46,7 @@ public class PathfinderGoalSelector {
@@ -67,7 +68,7 @@ index 44bb18c59..fcc778e81 100644
 -        }).filter(PathfinderGoalWrapped::a).forEach((pathfindergoalwrapped) -> {
 -            pathfindergoalwrapped.i().forEach((pathfindergoal_type) -> {
 -                PathfinderGoalWrapped pathfindergoalwrapped1 = (PathfinderGoalWrapped) this.c.getOrDefault(pathfindergoal_type, PathfinderGoalSelector.b);
-+        if (skipGoalUpdate) {
++        if (!skipGoalUpdate) {
 +            this.e.enter("goalUpdate");
 +            this.d.stream().filter((pathfindergoalwrapped) -> {
 +                return !pathfindergoalwrapped.g();
