@@ -1,15 +1,15 @@
-From e2ae8de7e2db50084237b2fdc2b43818ae6330d5 Mon Sep 17 00:00:00 2001
+From ab9cc5fa3d2b9599b4252afebf893d4fb9fd78e3 Mon Sep 17 00:00:00 2001
 From: ReinWD <ReinWDD@gmail.com>
 Date: Wed, 1 Jan 2020 17:14:11 +0800
-Subject: [PATCH 5/5] reduce EntityInsentient AI
+Subject: [PATCH 5/7] reduce EntityInsentient AI
 
 ---
- .../minecraft/server/EntityInsentient.java    |  6 ++-
- .../server/PathfinderGoalSelector.java        | 46 ++++++++++---------
+ .../net/minecraft/server/EntityInsentient.java     |  6 ++-
+ .../minecraft/server/PathfinderGoalSelector.java   | 46 +++++++++++-----------
  2 files changed, 28 insertions(+), 24 deletions(-)
 
 diff --git a/src/main/java/net/minecraft/server/EntityInsentient.java b/src/main/java/net/minecraft/server/EntityInsentient.java
-index 5fb3c948d..c0158c442 100644
+index e54f1e84..071e4636 100644
 --- a/src/main/java/net/minecraft/server/EntityInsentient.java
 +++ b/src/main/java/net/minecraft/server/EntityInsentient.java
 @@ -7,6 +7,7 @@ import java.util.List;
@@ -20,7 +20,7 @@ index 5fb3c948d..c0158c442 100644
  import javax.annotation.Nullable;
  
  // CraftBukkit start
-@@ -661,11 +662,12 @@ public abstract class EntityInsentient extends EntityLiving {
+@@ -675,11 +676,12 @@ public abstract class EntityInsentient extends EntityLiving {
          this.world.getMethodProfiler().enter("sensing");
          this.bw.a();
          this.world.getMethodProfiler().exit();
@@ -36,10 +36,10 @@ index 5fb3c948d..c0158c442 100644
          this.world.getMethodProfiler().enter("navigation");
          this.navigation.c();
 diff --git a/src/main/java/net/minecraft/server/PathfinderGoalSelector.java b/src/main/java/net/minecraft/server/PathfinderGoalSelector.java
-index 44bb18c59..397b2a49c 100644
+index 93513677..4bfd6130 100644
 --- a/src/main/java/net/minecraft/server/PathfinderGoalSelector.java
 +++ b/src/main/java/net/minecraft/server/PathfinderGoalSelector.java
-@@ -46,7 +46,7 @@ public class PathfinderGoalSelector {
+@@ -66,7 +66,7 @@ public class PathfinderGoalSelector {
          });
      }
  
@@ -48,7 +48,7 @@ index 44bb18c59..397b2a49c 100644
          this.e.enter("goalCleanup");
          this.c().filter((pathfindergoalwrapped) -> {
              boolean flag;
-@@ -72,29 +72,31 @@ public class PathfinderGoalSelector {
+@@ -92,29 +92,31 @@ public class PathfinderGoalSelector {
  
          });
          this.e.exit();
@@ -102,5 +102,5 @@ index 44bb18c59..397b2a49c 100644
          this.c().forEach(PathfinderGoalWrapped::e);
          this.e.exit();
 -- 
-2.17.1
+2.11.0
 

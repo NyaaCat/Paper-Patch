@@ -1,15 +1,15 @@
-From 2f4c86c52b8139af9d85b71cd46e043176a4da5c Mon Sep 17 00:00:00 2001
+From a922d3b760255ff8e6033cd193a2355e57457eef Mon Sep 17 00:00:00 2001
 From: ReinWD <ReinWDD@gmail.com>
 Date: Wed, 1 Jan 2020 17:11:36 +0800
-Subject: [PATCH 4/5] reduce villager AI
+Subject: [PATCH 4/7] reduce villager AI
 
 ---
- .../java/net/minecraft/server/BehaviorFindPosition.java   | 4 ++--
- src/main/java/net/minecraft/server/EntityVillager.java    | 8 ++++++++
+ src/main/java/net/minecraft/server/BehaviorFindPosition.java | 4 ++--
+ src/main/java/net/minecraft/server/EntityVillager.java       | 8 ++++++++
  2 files changed, 10 insertions(+), 2 deletions(-)
 
 diff --git a/src/main/java/net/minecraft/server/BehaviorFindPosition.java b/src/main/java/net/minecraft/server/BehaviorFindPosition.java
-index 35eb3a5a6..7cfd1b4b8 100644
+index 35eb3a5a..7cfd1b4b 100644
 --- a/src/main/java/net/minecraft/server/BehaviorFindPosition.java
 +++ b/src/main/java/net/minecraft/server/BehaviorFindPosition.java
 @@ -29,7 +29,7 @@ public class BehaviorFindPosition extends Behavior<EntityCreature> {
@@ -31,7 +31,7 @@ index 35eb3a5a6..7cfd1b4b8 100644
              }
          };
 diff --git a/src/main/java/net/minecraft/server/EntityVillager.java b/src/main/java/net/minecraft/server/EntityVillager.java
-index 572723005..428ae7f0c 100644
+index 6e0020ae..ede211d6 100644
 --- a/src/main/java/net/minecraft/server/EntityVillager.java
 +++ b/src/main/java/net/minecraft/server/EntityVillager.java
 @@ -13,6 +13,7 @@ import java.util.Map;
@@ -62,5 +62,5 @@ index 572723005..428ae7f0c 100644
          if (!this.et() && this.bB > 0) {
              --this.bB;
 -- 
-2.17.1
+2.11.0
 

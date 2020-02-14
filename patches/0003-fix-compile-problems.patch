@@ -1,15 +1,15 @@
-From 76ecd2eb79f47247f38511b008630b15ac11f96a Mon Sep 17 00:00:00 2001
+From 53bb48883cdd135d837aa58a08af0f1e7b62f398 Mon Sep 17 00:00:00 2001
 From: ReinWD <ReinWDD@gmail.com>
 Date: Wed, 1 Jan 2020 17:06:46 +0800
-Subject: [PATCH 3/5] fix compile problems
+Subject: [PATCH 3/7] fix compile problems
 
 ---
- .../java/net/minecraft/server/BehaviorController.java     | 8 ++++----
- .../java/net/minecraft/server/BehaviorFindPosition.java   | 2 +-
+ src/main/java/net/minecraft/server/BehaviorController.java   | 8 ++++----
+ src/main/java/net/minecraft/server/BehaviorFindPosition.java | 2 +-
  2 files changed, 5 insertions(+), 5 deletions(-)
 
 diff --git a/src/main/java/net/minecraft/server/BehaviorController.java b/src/main/java/net/minecraft/server/BehaviorController.java
-index a1883eba6..65fb2157c 100644
+index a1883eba..65fb2157 100644
 --- a/src/main/java/net/minecraft/server/BehaviorController.java
 +++ b/src/main/java/net/minecraft/server/BehaviorController.java
 @@ -39,7 +39,7 @@ public class BehaviorController<E extends EntityLiving> implements MinecraftSeri
@@ -49,7 +49,7 @@ index a1883eba6..65fb2157c 100644
              MemoryStatus memorystatus = (MemoryStatus) pair.getSecond();
  
 diff --git a/src/main/java/net/minecraft/server/BehaviorFindPosition.java b/src/main/java/net/minecraft/server/BehaviorFindPosition.java
-index 37006ec1b..35eb3a5a6 100644
+index 37006ec1..35eb3a5a 100644
 --- a/src/main/java/net/minecraft/server/BehaviorFindPosition.java
 +++ b/src/main/java/net/minecraft/server/BehaviorFindPosition.java
 @@ -53,7 +53,7 @@ public class BehaviorFindPosition extends Behavior<EntityCreature> {
@@ -62,5 +62,5 @@ index 37006ec1b..35eb3a5a6 100644
              });
          } else if (this.f < 5) {
 -- 
-2.17.1
+2.11.0
 
