@@ -1,0 +1,60 @@
+From 4b80edaff489704476bd22ddca1664417269f2dc Mon Sep 17 00:00:00 2001
+From: ReinWD <ReinWDD@gmail.com>
+Date: Mon, 24 Feb 2020 13:28:27 +0000
+Subject: [PATCH 4/4] remove prespawn event & implement monster tick
+
+---
+ .../java/net/minecraft/server/ChunkProviderServer.java    |  3 ++-
+ src/main/java/net/minecraft/server/PlayerChunkMap.java    | 15 +--------------
+ 2 files changed, 3 insertions(+), 15 deletions(-)
+
+diff --git a/src/main/java/net/minecraft/server/ChunkProviderServer.java b/src/main/java/net/minecraft/server/ChunkProviderServer.java
+index 0de82202..2662e06e 100644
+--- a/src/main/java/net/minecraft/server/ChunkProviderServer.java
++++ b/src/main/java/net/minecraft/server/ChunkProviderServer.java
+@@ -623,6 +623,7 @@ public class ChunkProviderServer extends IChunkProvider {
+             int k = this.world.getGameRules().getInt(GameRules.RANDOM_TICK_SPEED);
+             BlockPosition blockposition = this.world.getSpawn();
+             boolean flag2 = world.ticksPerAnimalSpawns != 0L && worlddata.getTime() % world.ticksPerAnimalSpawns == 0L; // CraftBukkit // PAIL: TODO monster ticks
++            boolean monsterTick = world.ticksPerMonsterSpawns != 0L && worlddata.getTime() % world.ticksPerMonsterSpawns == 0L; // ReinWD: monsterTick
+ 
+             this.world.getMethodProfiler().enter("naturalSpawnCount");
+             this.world.timings.countNaturalMobs.startTiming(); // Paper - timings
+@@ -671,7 +672,7 @@ public class ChunkProviderServer extends IChunkProvider {
+                         // Paper start - timings
+                         this.world.timings.chunkRangeCheckSmall.startTiming();
+                         // note: this is just a copy of the expression in the if
+-                        boolean smallRadiusOutsideRange = flag1 && (this.allowMonsters || this.allowAnimals) && this.world.getWorldBorder().isInBounds(chunk.getPos()) && !this.playerChunkMap.isOutsideOfRange(chunkcoordintpair, true);
++                        boolean smallRadiusOutsideRange = (flag1) && (this.allowMonsters || this.allowAnimals) && (flag2 || monsterTick) && this.world.getWorldBorder().isInBounds(chunk.getPos()) && !this.playerChunkMap.isOutsideOfRange(chunkcoordintpair, true);//ReinWD:monsterTick
+                         this.world.timings.chunkRangeCheckSmall.stopTiming();
+                         if (smallRadiusOutsideRange) { // Spigot
+                             // Paper end
+diff --git a/src/main/java/net/minecraft/server/PlayerChunkMap.java b/src/main/java/net/minecraft/server/PlayerChunkMap.java
+index 46d20538..a82a06f2 100644
+--- a/src/main/java/net/minecraft/server/PlayerChunkMap.java
++++ b/src/main/java/net/minecraft/server/PlayerChunkMap.java
+@@ -1275,20 +1275,7 @@ public class PlayerChunkMap extends IChunkLoader implements PlayerChunk.d {
+         // Spigot end
+         long i = chunkcoordintpair.pair();
+ 
+-        return !this.chunkDistanceManager.d(i) ? true : this.playerMap.a(i).noneMatch((entityplayer) -> {
+-            // Paper start -
+-            com.destroystokyo.paper.event.entity.PlayerNaturallySpawnCreaturesEvent event;
+-            double blockRange = 16384.0D;
+-            if (reducedRange) {
+-                event = new com.destroystokyo.paper.event.entity.PlayerNaturallySpawnCreaturesEvent(entityplayer.getBukkitEntity(), (byte) finalChunkRange);
+-                event.callEvent();
+-                blockRange = (double) ((event.getSpawnRadius() << 4) * (event.getSpawnRadius() << 4));
+-                if (event.isCancelled()) return false;
+-            }
+-
+-            return (!entityplayer.isSpectator() && a(chunkcoordintpair, (Entity) entityplayer) < blockRange); // Spigot
+-            // Paper end
+-        });
++        return !this.chunkDistanceManager.d(i);
+     }
+ 
+     private boolean b(EntityPlayer entityplayer) {
+-- 
+2.11.0
+

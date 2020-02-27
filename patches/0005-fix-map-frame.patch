@@ -1,0 +1,25 @@
+From 22a0859dc776dc310d3a1e731546ecb48887dd49 Mon Sep 17 00:00:00 2001
+From: ReinWD <ReinWDD@gmail.com>
+Date: Tue, 25 Feb 2020 14:50:09 +0000
+Subject: [PATCH] fix map frame
+
+---
+ src/main/java/net/minecraft/server/EntityTrackerEntry.java | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/main/java/net/minecraft/server/EntityTrackerEntry.java b/src/main/java/net/minecraft/server/EntityTrackerEntry.java
+index 3a88c9a6..f1139b63 100644
+--- a/src/main/java/net/minecraft/server/EntityTrackerEntry.java
++++ b/src/main/java/net/minecraft/server/EntityTrackerEntry.java
+@@ -83,7 +83,7 @@ public class EntityTrackerEntry {
+             EntityItemFrame entityitemframe = (EntityItemFrame) this.tracker;
+             ItemStack itemstack = entityitemframe.getItem();
+ 
+-            if (this.tickCounter % 10 == 0 && itemstack.getItem() instanceof ItemWorldMap) { // CraftBukkit - Moved this.tickCounter % 10 logic here so item frames do not enter the other blocks
++            if (this.tickCounter % 200 == 0 && itemstack.getItem() instanceof ItemWorldMap) { // CraftBukkit - Moved this.tickCounter % 10 logic here so item frames do not enter the other blocks
+                 WorldMap worldmap = ItemWorldMap.getSavedMap(itemstack, this.b);
+                 Iterator iterator = this.trackedPlayers.iterator(); // CraftBukkit
+ 
+-- 
+2.11.0
+

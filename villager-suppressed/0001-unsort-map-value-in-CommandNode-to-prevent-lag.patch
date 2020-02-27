@@ -1,7 +1,7 @@
-From 5e5f64acfb8af4f0970decf5b0328baee0cf592e Mon Sep 17 00:00:00 2001
+From baa6bcf9efda74fb26fb3be681a0cc7fb1e7b1e4 Mon Sep 17 00:00:00 2001
 From: ReinWD <ReinWDD@gmail.com>
 Date: Mon, 30 Dec 2019 23:47:22 +0800
-Subject: [PATCH 1/4] unsort map value in CommandNode to prevent lag
+Subject: [PATCH 1/7] unsort map value in CommandNode to prevent lag
 
 ---
  src/main/java/com/mojang/brigadier/tree/CommandNode.java | 4 ++--
